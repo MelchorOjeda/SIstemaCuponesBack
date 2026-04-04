@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # El motor de la base de datos
+  db:
+    image: postgres:15
+    container_name: sqr_postgresql
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: sqr_db
+    ports:
+      - "5444:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Interfaz visual para ver tus tablas en el navegador
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: cupones_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@sqr.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
