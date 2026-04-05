@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CuponesService } from './cupones.service';
 import { CreateCuponDto } from './dto/create-cupon.dto';
 import { UpdateCuponDto } from './dto/update-cupon.dto';
+import { RegistroYCuponDto } from './dto/registro-y-cupon.dto';
 
 @ApiTags('Cupones')
 @Controller('cupones')
@@ -10,10 +11,12 @@ export class CuponesController {
   constructor(private readonly cuponesService: CuponesService) { }
 
   @Post('generar')
-  @ApiOperation({ summary: 'Simula la ruleta y genera un nuevo cupón' })
-  @ApiResponse({ status: 201, description: 'Cupón generado con éxito' })
-  create(@Body() createCuponDto: CreateCuponDto, @Ip() ip: string) {
-    return this.cuponesService.generarCupon(createCuponDto, ip);
+  @ApiOperation({ summary: 'Registra al cliente y genera su cupón en un solo paso' })
+  create(
+    @Body() dto: RegistroYCuponDto,
+    @Ip() ip: string
+  ) {
+    return this.cuponesService.registrarYGenerar(dto, ip);
   }
 
   @Get()

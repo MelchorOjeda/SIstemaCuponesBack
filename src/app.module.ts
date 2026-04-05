@@ -21,8 +21,8 @@ import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
     CuponesModule,
     PrismaModule,
     ThrottlerModule.forRoot([{
-      ttl: 1800000, // Tiempo en milisegundos (30 mimutos)
-      limit: 1,   // 5 solicitudes por IP
+      ttl: 10000,//1800000, // Tiempo en milisegundos (30 mimutos)
+      limit: 50,   // 5 solicitudes por IP
     }]),
   ],
   controllers: [AppController],

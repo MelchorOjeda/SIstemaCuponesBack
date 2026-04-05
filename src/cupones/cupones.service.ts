@@ -1,81 +1,71 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateCuponDto } from './dto/create-cupon.dto';
 import { UpdateCuponDto } from './dto/update-cupon.dto';
+import { ClientesService } from 'src/clientes/clientes.service';
+import { RegistroYCuponDto } from './dto/registro-y-cupon.dto';
 
 @Injectable()
 export class CuponesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private clientesService: ClientesService
+  ) { }
 
-  async generarCupon(createCuponDto: CreateCuponDto, ip: string) {
-    const { id_cliente, id_sucursal } = createCuponDto;
+  async registrarYGenerar(dto: RegistroYCuponDto, ip: string) {
+    return await this.prisma.$transaction(async (tx) => {
 
-    const ipsPermitidas = ['::1', '127.0.0.1', '::ffff:127.0.0.1'];
-    const esAdmin = ipsPermitidas.includes(ip);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const cuponPorIp = await tx.cuponAsignado.findFirst({
+        where: { ip_registro: ip, fecha_asignacion: { gte: hoy } }
+      });
 
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-
-    const cuponPorIp = await this.prisma.cuponAsignado.findFirst({
-      where: {
-        ip_registro: ip,
-        fecha_asignacion: { gte: hoy }
+      if (cuponPorIp && !['::1', '127.0.0.1', '192.168.1.41', '::ffff:127.0.0.1'].includes(ip)) {
+        throw new BadRequestException('Solo una participación por dispositivo al día.');
       }
-    });
 
-if (!esAdmin) {
-    const cuponPorIp = await this.prisma.cuponAsignado.findFirst({
-      where: {
-        ip_registro: ip,
-        fecha_asignacion: { gte: hoy }
+      const cliente = await this.clientesService.upsertCliente(dto, tx);
+
+      const previo = await tx.cuponAsignado.findFirst({
+        where: { id_cliente: cliente.id, id_sucursal_canje: dto.id_sucursal }
+      });
+      if (previo) throw new BadRequestException('Ya generaste un cupón para esta sucursal.');
+
+      const promosRelacionadas = await tx.promocionSucursal.findMany({
+        where: {
+          id_sucursal: dto.id_sucursal,
+          promocion: { fecha_fin: { gt: new Date() } }
+        },
+        include: { promocion: true }
+      });
+
+      if (promosRelacionadas.length === 0) {
+        throw new NotFoundException('No hay promociones activas.');
       }
-    });
 
-    if (cuponPorIp) {
-      throw new BadRequestException('Solo se permite una participación por dispositivo al día.');
-    }
-  }
+      const listaPromos = promosRelacionadas.map(pr => pr.promocion);
+      let promoGanadora;
+      const numAzar = Math.floor(Math.random() * 100) + 1;
 
-    const previo = await this.prisma.cuponAsignado.findFirst({
-      where: { id_cliente, id_sucursal_canje: id_sucursal }
-    });
-    if (previo) throw new BadRequestException('Ya generaste un cupón para esta sucursal.');
+      if (dto.id_sucursal === 2 && numAzar === 100) {
+        promoGanadora = listaPromos.find(p => p.nombre.includes('10%'));
+      }
 
-    const promosRelacionadas = await this.prisma.promocionSucursal.findMany({
-      where: {
-        id_sucursal: id_sucursal,
-        promocion: { fecha_fin: { gt: new Date() } }
-      },
-      include: { promocion: true }
-    });
+      if (!promoGanadora) {
+        const normales = listaPromos.filter(p => !p.nombre.includes('10%'));
+        promoGanadora = normales[Math.floor(Math.random() * normales.length)];
+      }
 
-    if (promosRelacionadas.length === 0) {
-      throw new NotFoundException('No hay promociones activas para esta sucursal.');
-    }
-
-    const listaPromos = promosRelacionadas.map(pr => pr.promocion);
-
-    let promoGanadora;
-    const numAzar = Math.floor(Math.random() * 100) + 1;
-
-    if (id_sucursal === 2 && numAzar === 100) {
-      promoGanadora = listaPromos.find(p => p.nombre.includes('10%'));
-    }
-
-    if (!promoGanadora) {
-      const normales = listaPromos.filter(p => !p.nombre.includes('10%'));
-      promoGanadora = normales[Math.floor(Math.random() * normales.length)];
-    }
-
-    return this.prisma.cuponAsignado.create({
-      data: {
-        codigo_unico: `SQR${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
-        cliente: { connect: { id: id_cliente } },
-        promocion: { connect: { id: promoGanadora.id } },
-        sucursal: { connect: { id: id_sucursal } },
-        ip_registro: ip,
-      },
-      include: { promocion: true }
+      return await tx.cuponAsignado.create({
+        data: {
+          codigo_unico: `SQR${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+          id_cliente: cliente.id,
+          id_promocion: promoGanadora.id,
+          id_sucursal_canje: dto.id_sucursal,
+          ip_registro: ip,
+        },
+        include: { promocion: true }
+      });
     });
   }
 

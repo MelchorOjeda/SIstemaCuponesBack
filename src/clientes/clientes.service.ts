@@ -7,26 +7,19 @@ import { UpdateClienteDto } from './dto/update-cliente.dto';
 export class ClientesService {
   constructor(private prisma: PrismaService) { }
 
-  async create(createClienteDto: CreateClienteDto) {
-    const { correo, nombre, telefono, cumpleanios } = createClienteDto;
+async upsertCliente(dto: CreateClienteDto, tx?: any) {
+    const prisma = tx || this.prisma;
+    const { correo, nombre, telefono, cumpleanios } = dto;
 
-    const clienteExistente = await this.prisma.cliente.findUnique({
-      where: { correo },
+    // ELIMINA el "if (clienteExistente)". 
+    // El upsert ya se encarga de manejar si existe o no de forma segura.
+
+    return prisma.cliente.upsert({
+        where: { correo },
+        update: { nombre, telefono, cumpleanios: cumpleanios ? new Date(cumpleanios) : null },
+        create: { correo, nombre, telefono, cumpleanios: cumpleanios ? new Date(cumpleanios) : null },
     });
-
-    if (clienteExistente) {
-      throw new BadRequestException('Este correo ya está registrado, puedes seguir participando en futuras promociones.');
-    }
-
-    return this.prisma.cliente.create({
-      data: {
-        nombre,
-        correo,
-        telefono,
-        cumpleanios,
-      },
-    });
-  }
+}
 
   findAll() {
     return this.prisma.cliente.findMany();

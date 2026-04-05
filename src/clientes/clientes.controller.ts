@@ -14,7 +14,7 @@ export class ClientesController {
   @ApiResponse({ status: 201, description: 'Cliente creado con éxito.' })
   @ApiResponse({ status: 400, description: 'El correo ya existe o los datos son inválidos.' })
   create(@Body() createClienteDto: CreateClienteDto) {
-    return this.clientesService.create(createClienteDto);
+    return this.clientesService.upsertCliente(createClienteDto);
   }
 
   @Get()
