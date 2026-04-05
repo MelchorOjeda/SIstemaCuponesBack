@@ -8,7 +8,6 @@ import { ClientesModule } from './clientes/clientes.module';
 import { SucursalesModule } from './sucursales/sucursales.module';
 import { CuponesModule } from './cupones/cupones.module';
 import { ThrottlerModule } from '@nestjs/throttler/dist/throttler.module';
-import { ThrottlerGuard } from '@nestjs/throttler/dist/throttler.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 
@@ -21,8 +20,8 @@ import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
     CuponesModule,
     PrismaModule,
     ThrottlerModule.forRoot([{
-      ttl: 10000,//1800000, // Tiempo en milisegundos (30 mimutos)
-      limit: 50,   // 5 solicitudes por IP
+      ttl: 1800000, // Tiempo en milisegundos (30 mimutos)
+      limit: 2,   // 2 solicitudes por IP
     }]),
   ],
   controllers: [AppController],
