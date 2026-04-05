@@ -22,7 +22,7 @@ import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
     PrismaModule,
     ThrottlerModule.forRoot([{
       ttl: 1800000, // Tiempo en milisegundos (30 mimutos)
-      limit: 5,   // 5 solicitudes por IP
+      limit: 1,   // 5 solicitudes por IP
     }]),
   ],
   controllers: [AppController],
