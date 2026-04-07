@@ -99,3 +99,24 @@ model CuponAsignado {
   sucursal      Sucursal?  @relation(fields: [id_sucursal_canje], references: [id])
   empleado      Empleado?  @relation(fields: [id_empleado_canje], references: [id])
 }
+
+model DynamicQR {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  targetUrl   String
+  description String?
+  visitCount  Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime?  @updatedAt
+  visits      QRVisit[]
+}
+
+model QRVisit {
+  id          Int      @id @default(autoincrement())
+  qrId        String
+  userAgent   String?  
+  ip          String?  
+  createdAt   DateTime @default(now())
+  
+  dynamicQR   DynamicQR @relation(fields: [qrId], references: [id])
+}
