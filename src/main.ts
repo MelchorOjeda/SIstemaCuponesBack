@@ -25,7 +25,10 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:5173', 
-      'https://sistemacuponesfront-production.up.railway.app' 
+      'http://127.0.0.1:5173',
+      'https://sistemacuponesfront-production.up.railway.app',
+      'https://cocinaquereconforta.com', 
+      'https://www.cocinaquereconforta.com',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
