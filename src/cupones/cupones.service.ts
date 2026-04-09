@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateCuponDto } from './dto/update-cupon.dto';
 import { ClientesService } from 'src/clientes/clientes.service';
 import { RegistroYCuponDto } from './dto/registro-y-cupon.dto';
+import { CanjearCuponDto } from './dto/canjear-cupon.dto';
 
 @Injectable()
 export class CuponesService {
@@ -91,24 +92,59 @@ export class CuponesService {
     }
   }
 
-  async canjear(codigo: string, id_empleado: number) {
+  async obtenerInfoParaCanje(codigo: string) {
     const cupon = await this.prisma.cuponAsignado.findUnique({
-      where: { codigo_unico: codigo }
+      where: { codigo_unico: codigo },
+      include: {
+        cliente: true,
+        promocion: true
+      }
     });
 
-    if (!cupon || cupon.estado !== 'DISPONIBLE') {
-      throw new BadRequestException('Cupón no válido o ya canjeado.');
+    if (!cupon) {
+      throw new NotFoundException('Este cupón no existe.');
     }
 
-    return this.prisma.cuponAsignado.update({
-      where: { codigo_unico: codigo },
+    if (cupon.estado !== 'DISPONIBLE') {
+      throw new BadRequestException(`Este cupón ya no está disponible (Estado: ${cupon.estado}).`);
+    }
+
+    return {
+      promocionNombre: cupon.promocion.nombre,
+      promocionDescripcion: cupon.promocion.descripcion,
+      clienteNombre: cupon.cliente.nombre,
+      fechaObtencion: cupon.fecha_asignacion,
+      estado: cupon.estado
+    };
+  }
+
+  async canjear(dto: CanjearCuponDto) {
+
+    const infoCupon = await this.obtenerInfoParaCanje(dto.codigo);
+
+    const relacion = await this.prisma.empleadoSucursal.findUnique({
+      where: {
+        id_empleado_id_sucursal: {
+          id_empleado: dto.id_empleado,
+          id_sucursal: dto.id_sucursal,
+        },
+      },
+    });
+
+    if (!relacion) {
+      throw new BadRequestException('El empleado no está asignado a esta sucursal.');
+    }
+
+    return await this.prisma.cuponAsignado.update({
+      where: { codigo_unico: dto.codigo },
       data: {
         estado: 'CANJEADO',
         fecha_canje: new Date(),
-        id_empleado_canje: id_empleado
-      }
+        id_empleado_canje: dto.id_empleado,
+      },
     });
   }
+
 
 }
 

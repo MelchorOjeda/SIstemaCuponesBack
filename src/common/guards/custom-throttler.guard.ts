@@ -7,7 +7,10 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
         const request = context.switchToHttp().getRequest();
         const ip = request.ip;
 
-        const ipsPermitidas = ['::1', '127.0.0.1'];
-        return ipsPermitidas.includes(ip);
+        // Whitelist de IPs de desarrollo
+        const ipsPermitidas = ['::1', '127.0.0.1', '::ffff:127.0.0.1'];
+        if (ipsPermitidas.includes(ip)) return true;
+
+        return false;
     }
 }

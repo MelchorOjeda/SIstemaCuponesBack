@@ -21,9 +21,15 @@ import { QrDynamicModule } from './qr-dynamic/qr-dynamic.module';
     PromocionesModule,
     CuponesModule,
     PrismaModule,
+    // app.module.ts
     ThrottlerModule.forRoot([{
-      ttl: 1800000, // Tiempo en milisegundos (30 mimutos)
-      limit: 2,   // 2 solicitudes por IP
+      name: 'publico',
+      ttl: 1800000, // 30 minutos
+      limit: 2,     // 2 solicitudes
+    }, {
+      name: 'staff',
+      ttl: 60000,   // 1 minuto
+      limit: 10,    // 10 validaciones por minuto (suficiente para un mesero rápido)
     }]),
     QrDynamicModule,
   ],
@@ -32,7 +38,7 @@ import { QrDynamicModule } from './qr-dynamic/qr-dynamic.module';
     AppService,
     {
       provide: APP_GUARD,
-      useClass: CustomThrottlerGuard, 
+      useClass: CustomThrottlerGuard,
     },
   ],
 })
