@@ -145,6 +145,19 @@ export class CuponesService {
     });
   }
 
+  async generarCuponEspecial(clienteId: number, promocionId: number, tx: any) {
+    const codigo = `SQR${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+    return await tx.cuponAsignado.create({
+      data: {
+        codigo_unico: codigo,
+        id_cliente: clienteId,
+        id_promocion: promocionId,
+        estado: 'DISPONIBLE',
+      },
+    });
+  }
+
 
 }
 

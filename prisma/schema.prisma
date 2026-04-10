@@ -41,14 +41,64 @@ model Cliente {
   telefono    String?         @db.VarChar(15)
   cumpleanios DateTime?
   cupones     CuponAsignado[]
+
+  respuestas  RespuestaUsuario[]
+  encuestasCompletadas EncuestaCompletada[]
 }
 
-model CampaniaGrupo {
-  id          Int         @id @default(autoincrement())
-  nombre      String      @db.VarChar(100)
-  descripcion String?     @db.Text
-  excluyente  Boolean     @default(false)
-  promociones Promocion[]
+model Encuesta {
+  id             Int                 @id @default(autoincrement())
+  titulo         String              @db.VarChar(100)
+  descripcion    String?             @db.Text
+  fecha_creacion DateTime            @default(now())
+  
+  preguntas      Pregunta[]
+  completadas    EncuestaCompletada[]
+}
+
+model Pregunta {
+  id             Int                 @id @default(autoincrement())
+  id_encuesta    Int
+  texto_pregunta String              @db.Text
+  tipo_pregunta  String              @db.VarChar(50) // 'MULTIPLE', 'ABIERTA', 'RATING'
+  orden          Int                 @default(0)
+
+  encuesta       Encuesta            @relation(fields: [id_encuesta], references: [id])
+  opciones       OpcionPregunta[]
+  respuestas     RespuestaUsuario[]
+}
+
+model OpcionPregunta {
+  id           Int              @id @default(autoincrement())
+  id_pregunta  Int
+  texto_opcion String           @db.VarChar(255)
+
+  pregunta     Pregunta         @relation(fields: [id_pregunta], references: [id])
+  respuestas   RespuestaUsuario[]
+}
+
+model RespuestaUsuario {
+  id              Int             @id @default(autoincrement())
+  id_pregunta     Int
+  id_cliente      Int
+  id_opcion       Int?
+  respuesta_texto String?         @db.Text
+
+  pregunta        Pregunta        @relation(fields: [id_pregunta], references: [id])
+  cliente         Cliente         @relation(fields: [id_cliente], references: [id])
+  opcion          OpcionPregunta? @relation(fields: [id_opcion], references: [id])
+}
+
+model EncuestaCompletada {
+  id               Int            @id @default(autoincrement())
+  id_encuesta      Int
+  id_cliente       Int
+  id_cupon         Int?           @unique // Relación 1:1 con el cupón de premio
+  fecha_completado DateTime       @default(now())
+
+  encuesta         Encuesta       @relation(fields: [id_encuesta], references: [id])
+  cliente          Cliente        @relation(fields: [id_cliente], references: [id])
+  cupon            CuponAsignado? @relation(fields: [id_cupon], references: [id])
 }
 
 model Promocion {
@@ -89,6 +139,15 @@ model CuponAsignado {
   promocion Promocion @relation(fields: [id_promocion], references: [id])
   sucursal  Sucursal? @relation(fields: [id_sucursal_canje], references: [id])
   empleado  Empleado? @relation(fields: [id_empleado_canje], references: [id])
+  encuestaCompletada EncuestaCompletada?
+}
+
+model CampaniaGrupo {
+  id          Int         @id @default(autoincrement())
+  nombre      String      @db.VarChar(100)
+  descripcion String?     @db.Text
+  excluyente  Boolean     @default(false)
+  promociones Promocion[]
 }
 
 model DynamicQR {

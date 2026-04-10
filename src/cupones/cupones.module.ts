@@ -9,5 +9,6 @@ import { ClientesModule } from 'src/clientes/clientes.module';
   imports: [PrismaModule, ClientesModule],
   controllers: [CuponesController],
   providers: [CuponesService],
+  exports: [CuponesService],
 })
 export class CuponesModule {}

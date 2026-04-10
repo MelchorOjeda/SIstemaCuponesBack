@@ -12,6 +12,7 @@ import { ThrottlerGuard } from '@nestjs/throttler/dist/throttler.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 import { QrDynamicModule } from './qr-dynamic/qr-dynamic.module';
+import { EncuestasModule } from './encuestas/encuestas.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { QrDynamicModule } from './qr-dynamic/qr-dynamic.module';
     PromocionesModule,
     CuponesModule,
     PrismaModule,
-    // app.module.ts
+
     ThrottlerModule.forRoot([{
       name: 'publico',
       ttl: 1800000, // 30 minutos
@@ -32,6 +33,7 @@ import { QrDynamicModule } from './qr-dynamic/qr-dynamic.module';
       limit: 10,    // 10 validaciones por minuto (suficiente para un mesero rápido)
     }]),
     QrDynamicModule,
+    EncuestasModule,
   ],
   controllers: [AppController],
   providers: [

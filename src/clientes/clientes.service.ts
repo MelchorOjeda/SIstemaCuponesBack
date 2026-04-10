@@ -11,9 +11,6 @@ async upsertCliente(dto: CreateClienteDto, tx?: any) {
     const prisma = tx || this.prisma;
     const { correo, nombre, telefono, cumpleanios } = dto;
 
-    // ELIMINA el "if (clienteExistente)". 
-    // El upsert ya se encarga de manejar si existe o no de forma segura.
-
     return prisma.cliente.upsert({
         where: { correo },
         update: { nombre, telefono, cumpleanios: cumpleanios ? new Date(cumpleanios) : null },
