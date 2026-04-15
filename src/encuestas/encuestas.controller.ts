@@ -5,20 +5,21 @@ import { CreateEncuestaRespuestaDto } from './dto/create-encuesta-respuesta.dto'
 import { CreateEncuestaDto } from './dto/create-encuesta.dto';
 import { Throttle } from '@nestjs/throttler';
 
+
 @ApiTags('Encuestas')
 @Controller('encuestas')
 export class EncuestasController {
   constructor(private readonly encuestasService: EncuestasService) { }
 
   @Post()
-  @Throttle({ staff: { limit: 100, ttl: 60000 } })
+  @Throttle({ staff: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Crear una nueva encuesta con preguntas y opciones' })
   crear(@Body() dto: CreateEncuestaDto) {
     return this.encuestasService.crearEncuesta(dto);
   }
 
   @Post('responder')
-  @Throttle({ staff: { limit: 100, ttl: 60000 } })
+  @Throttle({ publico: { limit: 2, ttl: 1800000 } })
   @ApiOperation({ summary: 'Guardar respuestas de un cliente (aplica Upsert en Cliente)' })
   @ApiResponse({ status: 201, description: 'Respuestas guardadas y registro completado.' })
   responder(@Body() dto: CreateEncuestaRespuestaDto) {
@@ -26,7 +27,7 @@ export class EncuestasController {
   }
 
   @Get(':id')
-  @Throttle({ staff: { limit: 100, ttl: 60000 } })
+  @Throttle({ lecturas: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Obtener encuesta por ID para mostrarla en el Front' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.encuestasService.getEncuestaActiva(id);

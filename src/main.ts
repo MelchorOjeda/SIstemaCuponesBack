@@ -7,9 +7,11 @@ import { ThrottlerGuard } from '@nestjs/throttler/dist/throttler.guard';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  (app as any).getHttpAdapter().getInstance().set('trust proxy', true);
+
   const config = new DocumentBuilder()
-    .setTitle('SQR Cupones API')
-    .setDescription('API para el sistema de cupones de Mermelada y Autoctona')
+    .setTitle('SQR API')
+    .setDescription('APIs Sistemas Que Reconfortan')
     .setVersion('1.0')
     .build();
 
@@ -36,6 +38,6 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');
-  console.log(`El backend está corriendo en: ${process.env.BASE_URL}:${port}`);
+  console.log(`El backend está corriendo en: ${process.env.PORT}:${port}`);
 }
 bootstrap();

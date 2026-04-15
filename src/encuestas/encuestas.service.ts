@@ -74,7 +74,11 @@ export class EncuestasService {
           id_cupon: nuevoCupon.id, 
         },
         include: {
-          cupon: true
+          cupon: {
+            include:{
+              promocion: true
+            }
+          }
         }
       });
     });
