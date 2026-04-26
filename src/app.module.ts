@@ -22,6 +22,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
     CuponesModule,
     PrismaModule,
 
+    // ⚙️ THROTTLER — Límites de peticiones HTTP
+    // Para volver a PRODUCCIÓN: cambiar 'publico' a { ttl: 86400000, limit: 1 }
     ThrottlerModule.forRoot([{
       name: 'staff',
       ttl: 60000,   // 1 minuto
@@ -33,9 +35,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
     },
     {
       name: 'publico',
-      ttl: 1800000, // 30 minutos
-      limit: 2,     // 2 solicitudes
-    },]),
+      ttl: 86400000, // 24 horas
+      limit: 10,     // 🧪 PRUEBAS: 10 solicitudes/día | PRODUCCIÓN → cambiar a: limit: 1
+    }]),
     QrDynamicModule,
     EncuestasModule,
   ],

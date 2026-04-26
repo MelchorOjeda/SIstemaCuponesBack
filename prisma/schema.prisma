@@ -129,7 +129,7 @@ model CuponAsignado {
   id_promocion      Int
   id_sucursal_canje Int?
   id_empleado_canje Int?
-  codigo_unico      String    @unique @db.VarChar(7)
+  codigo_unico      String    @unique @db.VarChar(10)
   estado            String    @default("DISPONIBLE")
   fecha_asignacion  DateTime  @default(now())
   fecha_canje       DateTime?
