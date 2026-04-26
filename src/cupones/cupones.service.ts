@@ -108,7 +108,7 @@ export class CuponesService {
 
       const cupon = await tx.cuponAsignado.create({
         data: {
-          codigo_unico: `CQR-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+          codigo_unico: `CQR-${Math.random().toString(36).substring(2, 5).toUpperCase()}`,
           id_cliente: cliente.id,
           id_promocion: dto.id_promocion,
           id_sucursal_canje: dto.id_sucursal,
@@ -172,7 +172,7 @@ export class CuponesService {
 
       return await tx.cuponAsignado.create({
         data: {
-          codigo_unico: `CQR-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+          codigo_unico: `CQR-${Math.random().toString(36).substring(2, 5).toUpperCase()}`,
           id_cliente: cliente.id,
           id_promocion: promoGanadora.id,
           id_sucursal_canje: dto.id_sucursal,

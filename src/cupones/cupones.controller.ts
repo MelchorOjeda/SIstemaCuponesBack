@@ -18,8 +18,8 @@ export class CuponesController {
   // PASO 1: El Gancho — devuelve promoción aleatoria; valida IP sin escribir en DB
   // ---------------------------------------------------------------------------
   @Get('sorteo-inicial/:id_sucursal')
-  // 🧪 PRUEBAS: 10/día | PRODUCCIÓN → cambiar a: limit: 1, ttl: 86400000
-  @Throttle({ publico: { limit: 10, ttl: 86400000 } })
+  // 🛡️ PRODUCCIÓN: Máximo 5 intentos de sorteo por IP al día
+  @Throttle({ publico: { limit: 5, ttl: 86400000 } })
   @ApiOperation({ summary: 'Obtiene una promoción aleatoria para mostrar en el raspadito (sin registro)' })
   @ApiResponse({ status: 200, description: 'Promoción seleccionada para la sucursal' })
   @ApiResponse({ status: 400, description: 'IP ya participó hoy' })
@@ -34,8 +34,8 @@ export class CuponesController {
   // PASO 3: La Entrega — recibe datos del lead + id_promocion; crea cupón en DB
   // ---------------------------------------------------------------------------
   @Post('vincular-registro')
-  // 🧪 PRUEBAS: 10/día | PRODUCCIÓN → cambiar a: limit: 1, ttl: 86400000
-  @Throttle({ publico: { limit: 10, ttl: 86400000 } })
+  // 🛡️ PRODUCCIÓN: Máximo 5 registros/cupones por IP al día
+  @Throttle({ publico: { limit: 5, ttl: 86400000 } })
   @ApiOperation({ summary: 'Registra el lead y vincula el cupón al id_promocion obtenido en el sorteo inicial' })
   @ApiResponse({ status: 201, description: 'Cupón generado exitosamente' })
   vincularRegistro(

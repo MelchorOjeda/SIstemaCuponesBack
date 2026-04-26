@@ -36,7 +36,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     {
       name: 'publico',
       ttl: 86400000, // 24 horas
-      limit: 10,     // 🧪 PRUEBAS: 10 solicitudes/día | PRODUCCIÓN → cambiar a: limit: 1
+      limit: 5,      // 🛡️ PRODUCCIÓN: Máximo 5 cupones por IP al día
     }]),
     QrDynamicModule,
     EncuestasModule,

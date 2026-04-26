@@ -8,7 +8,13 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
     protected async shouldSkipAttribute(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
-        const ip = request.ip || request.headers['x-forwarded-for'] || request.connection.remoteAddress;
+        
+        // Obtener IP real considerando proxies (X-Forwarded-For)
+        const xForwardedFor = request.headers['x-forwarded-for'];
+        const ip = (typeof xForwardedFor === 'string' ? xForwardedFor.split(',')[0].trim() : xForwardedFor?.[0]) 
+                  || request.ip 
+                  || request.connection.remoteAddress;
+
         this.logger.warn(`PETICIÓN RECIBIDA DESDE IP: ${ip}`);
 
         const ipsPermitidas = ['::1', '127.0.0.1', '::ffff:127.0.0.1', 'localhost', '192.168.1.41'];
