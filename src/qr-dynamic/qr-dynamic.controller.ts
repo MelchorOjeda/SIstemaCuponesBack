@@ -12,6 +12,16 @@ export class QrDynamicController {
     return this.qrService.create(createDto);
   }
 
+  @Get()
+  async findAll() {
+    return this.qrService.findAll();
+  }
+
+  @Get('stats/:id')
+  async getStats(@Param('id') id: string) {
+    return this.qrService.getStats(id);
+  }
+
   @Get('view/:slug')
   async viewQr(@Param('slug') slug: string) {
     const base64Image = await this.qrService.generateImage(slug);

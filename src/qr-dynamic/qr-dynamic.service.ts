@@ -16,9 +16,62 @@ export class QrDynamicService {
     return this.prisma.dynamicQR.create({ data: createDto });
   }
 
+  async findAll() {
+    return this.prisma.dynamicQR.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getStats(id: string) {
+    const qr = await this.prisma.dynamicQR.findUnique({
+      where: { id },
+      include: {
+        visits: {
+          orderBy: { createdAt: 'desc' },
+          take: 100, // Últimas 100 visitas para la tabla
+        },
+      },
+    });
+
+    if (!qr) throw new BadRequestException('QR no encontrado');
+
+    // Agrupar visitas por día para el gráfico (últimos 30 días)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const chartDataRaw = await this.prisma.qRVisit.groupBy({
+      by: ['createdAt'],
+      where: {
+        qrId: id,
+        createdAt: { gte: thirtyDaysAgo },
+      },
+      _count: true,
+    });
+
+    // Procesar datos para que el frontend los lea fácil (YYYY-MM-DD)
+    const statsByDate = chartDataRaw.reduce((acc, curr) => {
+      const date = curr.createdAt.toISOString().split('T')[0];
+      acc[date] = (acc[date] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const chartData = Object.entries(statsByDate).map(([date, count]) => ({
+      date,
+      count,
+    })).sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+      ...qr,
+      chartData,
+    };
+  }
+
   async findTarget(slug: string, userAgent: string, ip: string) {
     const link = await this.prisma.dynamicQR.findUnique({ where: { slug } });
     if (!link) throw new BadRequestException('QR no encontrado');
+
+    // Obtener ubicación aproximada
+    const location = await this.getLocation(ip);
 
     await this.prisma.$transaction([
       this.prisma.dynamicQR.update({
@@ -30,11 +83,42 @@ export class QrDynamicService {
           qrId: link.id,
           userAgent,
           ip,
+          city: location?.city,
+          region: location?.region,
+          country: location?.country,
+          lat: location?.lat,
+          long: location?.long,
         },
       }),
     ]);
 
     return link.targetUrl;
+  }
+
+  private async getLocation(ip: string) {
+    try {
+      // Evitar llamadas para localhost
+      if (ip === '::1' || ip === '127.0.0.1' || !ip) return null;
+      
+      // En caso de que la IP venga de un proxy (x-forwarded-for)
+      const cleanIp = ip.split(',')[0].trim();
+      
+      const response = await fetch(`http://ip-api.com/json/${cleanIp}`);
+      const data = (await response.json()) as any;
+      
+      if (data.status === 'success') {
+        return {
+          city: data.city,
+          region: data.regionName,
+          country: data.country,
+          lat: data.lat,
+          long: data.lon,
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching location:', error);
+    }
+    return null;
   }
 
   async generateImage(slug: string) {

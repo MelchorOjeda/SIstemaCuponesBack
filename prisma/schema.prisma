@@ -167,6 +167,11 @@ model QRVisit {
   qrId      String
   userAgent String?
   ip        String?
+  city      String?
+  region    String?
+  country   String?
+  lat       Float?
+  long      Float?
   createdAt DateTime  @default(now())
   dynamicQR DynamicQR @relation(fields: [qrId], references: [id])
 }
