@@ -41,9 +41,30 @@ async upsertCliente(dto: CreateClienteDto, tx?: any) {
 
   async remove(id: number) {
     try {
-      return await this.prisma.cliente.delete({ where: { id } });
-    } catch {
-      throw new NotFoundException(`No se pudo eliminar el cliente con ID ${id}`);
+      return await this.prisma.$transaction(async (tx) => {
+        // 1. Eliminar respuestas a preguntas de encuestas
+        await tx.respuestaUsuario.deleteMany({
+          where: { id_cliente: id }
+        });
+
+        // 2. Eliminar registros de encuestas completadas
+        await tx.encuestaCompletada.deleteMany({
+          where: { id_cliente: id }
+        });
+
+        // 3. Eliminar cupones asignados al cliente
+        await tx.cuponAsignado.deleteMany({
+          where: { id_cliente: id }
+        });
+
+        // 4. Finalmente eliminar al cliente
+        return await tx.cliente.delete({
+          where: { id }
+        });
+      });
+    } catch (error) {
+      console.error('Error al eliminar cliente:', error);
+      throw new BadRequestException(`No se pudo eliminar el cliente con ID ${id}. Verifique que no tenga dependencias críticas.`);
     }
   }
 }

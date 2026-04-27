@@ -11,6 +11,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 import { QrDynamicModule } from './qr-dynamic/qr-dynamic.module';
 import { EncuestasModule } from './encuestas/encuestas.module';
+import { CampaniasModule } from './campanias/campanias.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
@@ -40,6 +41,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     }]),
     QrDynamicModule,
     EncuestasModule,
+    CampaniasModule,
   ],
   controllers: [AppController],
   providers: [

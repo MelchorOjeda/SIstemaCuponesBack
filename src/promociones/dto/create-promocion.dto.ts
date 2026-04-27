@@ -21,4 +21,16 @@ export class CreatePromocionDto {
     @ApiProperty({ example: 55, required: false })
     @IsOptional()
     valor!: number;
+
+    @ApiProperty({ example: 1, required: false })
+    @IsOptional()
+    id_campania_grupo?: number;
+
+    @ApiProperty({ example: [1, 2], required: false })
+    @IsOptional()
+    sucursales?: number[];
+
+    @ApiProperty({ example: 'ACTIVA', required: false })
+    @IsString() @IsOptional()
+    estado?: string;
 }

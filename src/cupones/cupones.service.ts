@@ -187,7 +187,11 @@ export class CuponesService {
     return this.prisma.cuponAsignado.findMany({
       include: {
         cliente: true,
-        promocion: true,
+        promocion: {
+          include: {
+            campania: true,
+          },
+        },
         sucursal: true,
       },
       orderBy: { id: 'desc' },
@@ -280,6 +284,17 @@ export class CuponesService {
       return await this.prisma.cuponAsignado.update({
         where: { id },
         data: { estado: 'CANCELADO' },
+      });
+    } catch {
+      throw new NotFoundException(`Cupón con ID ${id} no encontrado`);
+    }
+  }
+
+  async reactivate(id: number) {
+    try {
+      return await this.prisma.cuponAsignado.update({
+        where: { id },
+        data: { estado: 'DISPONIBLE' },
       });
     } catch {
       throw new NotFoundException(`Cupón con ID ${id} no encontrado`);

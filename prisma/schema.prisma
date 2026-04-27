@@ -108,6 +108,7 @@ model Promocion {
   tipo_descuento    String              @db.VarChar(50)
   valor             Decimal             @db.Decimal(10, 2)
   fecha_fin         DateTime
+  estado            String              @default("ACTIVA") @db.VarChar(50) // ACTIVA, EXPIRADA, DESACTIVADA
   descripcion       String?             @db.Text
   campania          CampaniaGrupo?      @relation(fields: [id_campania_grupo], references: [id])
   sucursales        PromocionSucursal[]

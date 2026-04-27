@@ -105,4 +105,12 @@ export class CuponesController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.cuponesService.remove(id);
   }
+
+  @Post(':id/reactivar')
+  @SkipThrottle()
+  @ApiOperation({ summary: '[Admin] Reactivar un cupón cancelado' })
+  @ApiResponse({ status: 200, description: 'Cupón reactivado.' })
+  reactivate(@Param('id', ParseIntPipe) id: number) {
+    return this.cuponesService.reactivate(id);
+  }
 }

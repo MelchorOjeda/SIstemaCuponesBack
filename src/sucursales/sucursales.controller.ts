@@ -4,8 +4,11 @@ import { SucursalesService } from './sucursales.service';
 import { CreateSucursalDto } from './dto/create-sucursal.dto';
 import { UpdateSucursalDto } from './dto/update-sucursal.dto';
 
+import { SkipThrottle } from '@nestjs/throttler';
+
 @ApiTags('Sucursales')
 @Controller('sucursales')
+@SkipThrottle()
 export class SucursalesController {
   constructor(private readonly sucursalesService: SucursalesService) { }
 
