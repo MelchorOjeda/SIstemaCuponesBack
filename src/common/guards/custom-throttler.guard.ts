@@ -18,12 +18,17 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
         this.logger.warn(`PETICIÓN RECIBIDA DESDE IP: ${ip}`);
 
         const ipsPermitidas = ['::1', '127.0.0.1', '::ffff:127.0.0.1', 'localhost', '192.168.1.41'];
+        
+        // Limpiar prefijo IPv6 si existe
+        const cleanIp = ip.replace(/^::ffff:/, '');
 
-        if (ipsPermitidas.includes(ip)) {
-            this.logger.log('IP Blanca detectada - Saltando Throttler');
+        // Bypass total si es IP local O si es una petición DELETE desde IP local
+        if (ipsPermitidas.includes(ip) || ipsPermitidas.includes(cleanIp)) {
+            this.logger.log(`✅ Bypass Throttler para IP: ${ip} (${request.method} ${request.url})`);
             return true;
         }
 
+        this.logger.warn(`⚠️ IP no permitida para bypass: ${ip}. Aplicando límites...`);
         return false;
     }
 }

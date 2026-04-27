@@ -95,4 +95,39 @@ export class EncuestasService {
       },
     });
   }
+
+  async findAll() {
+    return this.prisma.encuesta.findMany({
+      include: {
+        preguntas: { include: { opciones: true }, orderBy: { orden: 'asc' } },
+        _count: { select: { completadas: true } },
+      },
+      orderBy: { id: 'desc' },
+    });
+  }
+
+  async remove(id: number) {
+    // Hard-delete: eliminar en orden correcto por FK constraints
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Obtener IDs de preguntas
+      const preguntas = await tx.pregunta.findMany({ where: { id_encuesta: id } });
+      const preguntaIds = preguntas.map((p) => p.id);
+
+      // 2. Eliminar respuestas referenciando esas preguntas
+      if (preguntaIds.length > 0) {
+        await tx.respuestaUsuario.deleteMany({ where: { id_pregunta: { in: preguntaIds } } });
+        await tx.opcionPregunta.deleteMany({ where: { id_pregunta: { in: preguntaIds } } });
+      }
+
+      // 3. Eliminar preguntas
+      await tx.pregunta.deleteMany({ where: { id_encuesta: id } });
+
+      // 4. Desasociar cupones de encuesta completada
+      await tx.encuestaCompletada.deleteMany({ where: { id_encuesta: id } });
+
+      // 5. Eliminar la encuesta
+      await tx.encuesta.delete({ where: { id } });
+    });
+    return { message: `Encuesta ${id} eliminada correctamente` };
+  }
 }

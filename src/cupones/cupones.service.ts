@@ -271,4 +271,49 @@ export class CuponesService {
       },
     });
   }
+
+  // ---------------------------------------------------------------------------
+  // ADMIN: Soft-delete — cambia estado a CANCELADO
+  // ---------------------------------------------------------------------------
+  async remove(id: number) {
+    try {
+      return await this.prisma.cuponAsignado.update({
+        where: { id },
+        data: { estado: 'CANCELADO' },
+      });
+    } catch {
+      throw new NotFoundException(`Cupón con ID ${id} no encontrado`);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // ADMIN: Estadísticas de cupones generados vs canjeados por día (30 días)
+  // ---------------------------------------------------------------------------
+  async estadisticasPorDia() {
+    const cupones = await this.prisma.cuponAsignado.findMany({
+      where: {
+        fecha_asignacion: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+      select: {
+        fecha_asignacion: true,
+        fecha_canje: true,
+        estado: true,
+      },
+      orderBy: { fecha_asignacion: 'asc' },
+    });
+
+    // Agrupar por fecha (YYYY-MM-DD)
+    const mapa: Record<string, { generados: number; canjeados: number }> = {};
+    for (const c of cupones) {
+      const fecha = c.fecha_asignacion.toISOString().slice(0, 10);
+      if (!mapa[fecha]) mapa[fecha] = { generados: 0, canjeados: 0 };
+      mapa[fecha].generados++;
+      if (c.estado === 'CANJEADO') mapa[fecha].canjeados++;
+    }
+
+    return Object.entries(mapa).map(([fecha, vals]) => ({ fecha, ...vals }));
+  }
 }
+

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
@@ -30,6 +30,20 @@ async upsertCliente(dto: CreateClienteDto, tx?: any) {
       });
     } catch (error) {
       throw new Error(`No se pudo encontrar el cliente con ID ${id}`);
+    }
+  }
+
+  async findOne(id: number) {
+    const cliente = await this.prisma.cliente.findUnique({ where: { id } });
+    if (!cliente) throw new NotFoundException(`Cliente con ID ${id} no encontrado`);
+    return cliente;
+  }
+
+  async remove(id: number) {
+    try {
+      return await this.prisma.cliente.delete({ where: { id } });
+    } catch {
+      throw new NotFoundException(`No se pudo eliminar el cliente con ID ${id}`);
     }
   }
 }

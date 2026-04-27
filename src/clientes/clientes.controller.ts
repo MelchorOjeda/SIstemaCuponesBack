@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, ParseIntPipe, Delete } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ClientesService } from './clientes.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
@@ -6,6 +7,7 @@ import { UpdateClienteDto } from './dto/update-cliente.dto';
 
 @ApiTags('Clientes')
 @Controller('clientes')
+@SkipThrottle()
 export class ClientesController {
   constructor(private readonly clientesService: ClientesService) { }
 
@@ -31,5 +33,18 @@ export class ClientesController {
     @Body() updateClienteDto: UpdateClienteDto
   ) {
     return this.clientesService.update(id, updateClienteDto);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Obtener un cliente por ID' })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.clientesService.findOne(id);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Eliminar un cliente permanentemente (hard-delete)' })
+  @ApiResponse({ status: 200, description: 'Cliente eliminado.' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.clientesService.remove(id);
   }
 }

@@ -1,4 +1,5 @@
-import { Controller, Post, Body, Get, Patch, Param, ParseIntPipe, Ip } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, Param, ParseIntPipe, Ip, Delete } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CuponesService } from './cupones.service';
 import { CreateCuponDto } from './dto/create-cupon.dto';
@@ -59,12 +60,21 @@ export class CuponesController {
   }
 
   @Get()
+  @SkipThrottle()
   @ApiOperation({ summary: 'Obtener historial de todos los cupones asignados' })
   findAll() {
     return this.cuponesService.findAll();
   }
 
+  @Get('estadisticas/por-dia')
+  @SkipThrottle()
+  @ApiOperation({ summary: '[Admin] Estadísticas de cupones generados vs canjeados por día (30 días)' })
+  estadisticasPorDia() {
+    return this.cuponesService.estadisticasPorDia();
+  }
+
   @Patch(':id')
+  @SkipThrottle()
   @ApiOperation({ summary: 'Actualizar un cupón existente' })
   @ApiResponse({ status: 200, description: 'Cupón actualizado con éxito.' })
   update(
@@ -86,5 +96,13 @@ export class CuponesController {
   @ApiOperation({ summary: 'Canjea el cupón validando empleado y sucursal' })
   canjear(@Body() dto: CanjearCuponDto) {
     return this.cuponesService.canjear(dto);
+  }
+
+  @Delete(':id')
+  @SkipThrottle()
+  @ApiOperation({ summary: '[Admin] Cancelar un cupón (soft-delete: estado → CANCELADO)' })
+  @ApiResponse({ status: 200, description: 'Cupón cancelado.' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.cuponesService.remove(id);
   }
 }
