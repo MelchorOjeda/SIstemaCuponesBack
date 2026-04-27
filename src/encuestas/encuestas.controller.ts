@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, ParseIntPipe, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, ParseIntPipe, Delete, Patch } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { EncuestasService } from './encuestas.service';
@@ -41,11 +41,55 @@ export class EncuestasController {
     return this.encuestasService.getEncuestaActiva(id);
   }
 
+  @Patch(':id')
+  @SkipThrottle()
+  @ApiOperation({ summary: '[Admin] Editar una encuesta' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+    return this.encuestasService.updateEncuesta(id, dto);
+  }
+
   @Delete(':id')
   @SkipThrottle()
   @ApiOperation({ summary: '[Admin] Eliminar una encuesta y todos sus datos' })
   @ApiResponse({ status: 200, description: 'Encuesta eliminada.' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.encuestasService.remove(id);
+  }
+
+  // --- DASHBOARD ---
+
+  @Get('admin/stats')
+  @SkipThrottle()
+  @ApiOperation({ summary: '[Admin] Obtener estadísticas generales o por encuesta' })
+  getStats(@Param('id') id?: string) {
+    return this.encuestasService.getEstadisticas(id ? +id : undefined);
+  }
+
+  @Get('admin/stats/:id')
+  @SkipThrottle()
+  @ApiOperation({ summary: '[Admin] Obtener estadísticas de una encuesta específica' })
+  getStatsById(@Param('id', ParseIntPipe) id: number) {
+    return this.encuestasService.getEstadisticas(id);
+  }
+
+  @Get('admin/completadas')
+  @SkipThrottle()
+  @ApiOperation({ summary: '[Admin] Listar encuestas respondidas' })
+  getCompletadas() {
+    return this.encuestasService.getCompletadas();
+  }
+
+  @Get('admin/completadas/:id')
+  @SkipThrottle()
+  @ApiOperation({ summary: '[Admin] Ver detalle de una respuesta específica' })
+  getCompletadaDetalle(@Param('id', ParseIntPipe) id: number) {
+    return this.encuestasService.getDetalleCompletada(id);
+  }
+
+  @Delete('admin/completadas/:id')
+  @SkipThrottle()
+  @ApiOperation({ summary: '[Admin] Eliminar una respuesta de cliente' })
+  removeCompletada(@Param('id', ParseIntPipe) id: number) {
+    return this.encuestasService.removeCompletada(id);
   }
 }
