@@ -128,12 +128,40 @@ export class QrDynamicService {
 
     const canvas = createCanvas(600, 600);
 
+    // Fetch the QR from the database to see which logo was selected
+    const qrData = await this.prisma.dynamicQR.findUnique({
+      where: { slug }
+    });
+
+    const selectedLogo = qrData?.logo || 'mermelada';
+
+    const LOGO_CONFIGS: Record<string, { path: string; darkColor: string }> = {
+      mermelada: {
+        path: 'assets/moraMermelada.png',
+        darkColor: '#73385c',
+      },
+      autoctona: {
+        path: 'assets/autoctonaUniLogo.png',
+        darkColor: '#3D352E',
+      },
+      autoctona_dorado: {
+        path: 'assets/autoctonaUniLogoDorado.png',
+        darkColor: '#3D352E',
+      },
+      autoctona_amarillo: {
+        path: 'assets/autoctonaUniLogoAmarillo.png',
+        darkColor: '#3D352E',
+      }
+    };
+
+    const logoConfig = LOGO_CONFIGS[selectedLogo] || LOGO_CONFIGS.mermelada;
+
     await QRCode.toCanvas(canvas, redirectUrl, {
       errorCorrectionLevel: 'H',
       width: 600,
       margin: 4,
       color: {
-        dark: '#73385c', 
+        dark: logoConfig.darkColor, 
         light: '#FFFFFF', 
       },
     });
@@ -141,7 +169,7 @@ export class QrDynamicService {
     const ctx = canvas.getContext('2d');
 
     try {
-      const logo = await loadImage('assets/moraMermelada.png');
+      const logo = await loadImage(logoConfig.path);
       const logoSize = 135; // Un poquito más grande para que luzca
       const x = (600 - logoSize) / 2;
       const y = (600 - logoSize) / 2;
@@ -152,7 +180,7 @@ export class QrDynamicService {
       ctx.fillStyle = '#FFFFFF';
       ctx.fill();
 
-      // Dibujar el logo de la mora
+      // Dibujar el logo
       ctx.drawImage(logo, x, y, logoSize, logoSize);
     } catch (e: any) {
       console.log('Error cargando logo:', e.message);

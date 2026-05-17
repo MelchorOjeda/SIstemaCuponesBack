@@ -160,6 +160,7 @@ model DynamicQR {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime? @updatedAt
   visits      QRVisit[]
+  logo        String    @default("mermelada")
 }
 
 model QRVisit {

@@ -10,4 +10,8 @@ export class CreateQrDynamicDto {
     @IsString()
     @IsOptional()
     description?: string;
+
+    @IsString()
+    @IsOptional()
+    logo?: string;
 }
